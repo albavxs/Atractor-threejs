@@ -17,6 +17,23 @@ html, body, #__next {
 
 /* Prevent any scrolling on all elements */
 body {
-  touch-action: manipulation;
+  touch-action: none;
   overscroll-behavior: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Prevent pull-to-refresh on mobile */
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* Ensure no scrolling happens */
+html, body {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }

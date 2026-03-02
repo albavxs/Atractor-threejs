@@ -126,6 +126,7 @@ const AizawaScene = () => {
     let autoRot = true, dragging = false;
     let prevX = 0, prevY = 0, clock = 0;
     let rafId = 0;
+    let lastTouchDistance = 0;
 
     const onDown = (x: number, y: number) => {
       dragging = true;
@@ -144,12 +145,40 @@ const AizawaScene = () => {
 
     const handleMouseDown = (e: MouseEvent) => onDown(e.clientX, e.clientY);
     const handleMouseMove = (e: MouseEvent) => onMove(e.clientX, e.clientY);
-    const handleTouchStart = (e: TouchEvent) => onDown(e.touches[0].clientX, e.touches[0].clientY);
-    const handleTouchMove = (e: TouchEvent) => onMove(e.touches[0].clientX, e.touches[0].clientY);
+    
+    const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      if (e.touches.length === 1) {
+        onDown(e.touches[0].clientX, e.touches[0].clientY);
+      } else if (e.touches.length === 2) {
+        // Calculate distance between two fingers for pinch zoom
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+        dragging = false;
+      }
+    };
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      if (e.touches.length === 1) {
+        onMove(e.touches[0].clientX, e.touches[0].clientY);
+      } else if (e.touches.length === 2) {
+        // Pinch zoom
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const currentDistance = Math.sqrt(dx * dx + dy * dy);
+        const delta = currentDistance - lastTouchDistance;
+        camera.position.z = Math.max(2, Math.min(15, camera.position.z - delta * 0.01));
+        lastTouchDistance = currentDistance;
+      }
+    };
 
     const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
       camera.position.z = Math.max(2, Math.min(15, camera.position.z + e.deltaY * 0.005));
     };
+    
     const onDbl = () => {
       autoRot = true;
       clock = 0;
@@ -162,14 +191,23 @@ const AizawaScene = () => {
       camera.updateProjectionMatrix();
     };
 
+    // Prevent default touch behaviors
+    const preventScroll = (e: Event) => {
+      e.preventDefault();
+    };
+
     canvas.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mouseup", onUp);
     window.addEventListener("mousemove", handleMouseMove);
-    canvas.addEventListener("wheel", onWheel, { passive: true });
+    canvas.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("dblclick", onDbl);
-    canvas.addEventListener("touchstart", handleTouchStart, { passive: true });
-    window.addEventListener("touchend", onUp);
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+    canvas.addEventListener("touchend", onUp, { passive: false });
+    
+    // Block scrolling on document
+    document.addEventListener("touchmove", preventScroll, { passive: false });
+    document.addEventListener("wheel", preventScroll, { passive: false });
     window.addEventListener("resize", onResize);
 
     const animate = () => {
@@ -199,8 +237,10 @@ const AizawaScene = () => {
       canvas.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("dblclick", onDbl);
       canvas.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchend", onUp);
-      window.removeEventListener("touchmove", handleTouchMove);
+      canvas.removeEventListener("touchmove", handleTouchMove);
+      canvas.removeEventListener("touchend", onUp);
+      document.removeEventListener("touchmove", preventScroll);
+      document.removeEventListener("wheel", preventScroll);
       window.removeEventListener("resize", onResize);
       renderer.dispose();
       bgGeo.dispose();
