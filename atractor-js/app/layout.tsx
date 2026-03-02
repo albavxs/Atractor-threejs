@@ -1,3 +1,10 @@
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Aizawa Attractor',
+  description: 'Visualização do Atrator de Aizawa em 3D',
+};
+
 export default function RootLayout({
   children,
 }: {

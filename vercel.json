@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd atractor-js && npm run build",
+  "installCommand": "cd atractor-js && npm install",
+  "outputDirectory": "atractor-js/.next",
+  "framework": "nextjs"
+}
