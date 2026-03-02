@@ -11,9 +11,13 @@ const AizawaScene = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // ── Detect mobile ────────────────────────────────────────────────────────
+    const isMobile = window.innerWidth < 768;
+    const isLowPowerDevice = (navigator as any).deviceMemory ? (navigator as any).deviceMemory <= 4 : false;
+
     // ── Renderer ─────────────────────────────────────────────────────────────
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0); // Transparent background to let main handle it
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -29,7 +33,8 @@ const AizawaScene = () => {
     scene.add(group);
 
     // ── Bake path ────────────────────────────────────────────────────────────
-    const PATH_STEPS = 600_000;
+    // Reduce path complexity on mobile and low-power devices
+    const PATH_STEPS = isMobile || isLowPowerDevice ? 300_000 : 600_000;
     const DISCARD = 15_000;
     const path = bakeTrajectory(PATH_STEPS + DISCARD, DISCARD);
     const pathCount = PATH_STEPS;
@@ -48,7 +53,7 @@ const AizawaScene = () => {
     group.add(new THREE.Points(bgGeo, bgMat));
 
     // ── Microspheres ─────────────────────────────────────────────────────────
-    const N_SPHERES = 8000;
+    const N_SPHERES = isMobile || isLowPowerDevice ? 2000 : 8000;
     const SPHERE_SPD = 1;
 
     const indices = new Float64Array(N_SPHERES);

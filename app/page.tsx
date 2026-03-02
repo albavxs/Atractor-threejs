@@ -1,8 +1,20 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import AizawaScene from "../src/components/AizawaScene";
 
 export default function Home() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
     <div style={{
       position: 'fixed',
@@ -18,26 +30,30 @@ export default function Home() {
       {/* HUD — Top Left, following the reference image style */}
       <div style={{
         position: 'absolute',
-        top: '40px',
-        left: '40px',
+        top: isMobile ? '20px' : '40px',
+        left: isMobile ? '20px' : '40px',
+        right: isMobile ? '20px' : 'auto',
         zIndex: 50,
         pointerEvents: 'none',
-        userSelect: 'none'
+        userSelect: 'none',
+        maxWidth: isMobile ? 'calc(100% - 40px)' : 'auto'
       }}>
         <h1 style={{
-          fontSize: '28px',
+          fontSize: isMobile ? '20px' : '28px',
           fontWeight: 300,
           letterSpacing: '0.3em',
-          marginBottom: '16px',
+          marginBottom: isMobile ? '12px' : '16px',
           textTransform: 'uppercase',
-          color: 'white'
+          color: 'white',
+          margin: 0
         }}>AIZAWA</h1>
         <div style={{
           fontFamily: 'monospace',
-          fontSize: '11px',
-          lineHeight: '2',
+          fontSize: isMobile ? '8px' : '11px',
+          lineHeight: '1.8',
           fontStyle: 'italic',
-          color: 'rgba(255, 255, 255, 0.6)'
+          color: 'rgba(255, 255, 255, 0.6)',
+          display: isMobile ? 'none' : 'block'
         }}>
           <p style={{ margin: 0 }}>dx = (z−b)x − dy</p>
           <p style={{ margin: 0 }}>dy = dx + (z−b)y</p>
@@ -53,19 +69,22 @@ export default function Home() {
       {/* Mobile Interaction Hint */}
       <div style={{
         position: 'absolute',
-        bottom: '30px',
+        bottom: isMobile ? '20px' : '30px',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 50,
         pointerEvents: 'none',
         userSelect: 'none',
         color: 'rgba(255, 255, 255, 0.2)',
-        fontSize: '10px',
+        fontSize: isMobile ? '9px' : '10px',
         textTransform: 'uppercase',
         letterSpacing: '0.2em',
-        display: 'block'
+        display: 'block',
+        textAlign: 'center',
+        maxWidth: '90%',
+        whiteSpace: isMobile ? 'normal' : 'nowrap'
       }}>
-        Touch to rotate • Double tap to reset
+        {isMobile ? 'Touch to rotate\nDouble tap to reset' : 'Touch to rotate • Double tap to reset'}
       </div>
     </div>
   );
