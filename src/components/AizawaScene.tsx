@@ -13,7 +13,8 @@ const AizawaScene = () => {
 
     // ── Detect mobile ────────────────────────────────────────────────────────
     const isMobile = window.innerWidth < 768;
-    const isLowPowerDevice = (navigator as any).deviceMemory ? (navigator as any).deviceMemory <= 4 : false;
+    const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+    const isLowPowerDevice = typeof deviceMemory === "number" && deviceMemory <= 4;
 
     // ── Renderer ─────────────────────────────────────────────────────────────
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, alpha: true });
